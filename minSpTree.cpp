@@ -1,24 +1,10 @@
-/*   Create a random undirected graph and find the shortest path from any node to any other.
+/*   Create a random undirected graph and find the minimum spanning tree.
  *   Thomas Pliakis
- *   January 9, 2023
+ *   January 11, 2023
  */
 
-/* What i have learned.
- *
- * Writing such a program was quite a challenge because of the Abstract Data Type, but it was worth it. It taught me a bunch of things.
- * Firstly i leanred how to use vectors and lists of the STD Library of C++ and what are their implemented methods. 
- * Then how to write classes with private and public variables and methods. I became more familiar with OOP programming.
- * How to use constructors and destructors form my classes , especially because vectors and lists have their own in STD library.
- * How to use new and delete for memeory manangement even though i end up not using them.
- * How C++ uses the stack and heap for memory management.
- * The hardest thing was to design the ADT so in the end would not only work corectly, but also be efficient.
- * The implementation of the Priority queue and Dijkstra algorithm was very intresting because i learned the power of classes in organizing the entities of my logic and how they interacted between each other.
- * While i was writing the code i leanrned how important is the design of the ADT in order to write simple, decoupling code in the spirit of OOP.
- * The code end up more complex and coupled than i would like. When i wanted to change something, i had to make multiple code changes.
- * If i were to spent some more time programming i would like to try a whole different approach to this problem.
- *
- */
-
+#include <fstream>
+#include <algorithm>
 #include <iostream>
 #include <unistd.h>
 #include <limits>
@@ -28,8 +14,6 @@
 #include <iterator>
 #include <list>
 #include <ctime>
-
-using namespace std;
 
 // ============================================================================
 // Definitions
@@ -42,9 +26,9 @@ const int maxNumOfEdges = (NUMOFNODES *(NUMOFNODES -1))/2;
 // ============================================================================
 // Random Engine for correct densities
 // ============================================================================
-random_device rd;
-uniform_int_distribution<int> distribution(1, 100);
-mt19937 engine(rd()); // Mersenne twister MT19937
+std::random_device rd;
+std::uniform_int_distribution<int> distribution(1, 100);
+std::mt19937 engine(rd()); // Mersenne twister MT19937
 
 //=============================================================================
 // Edge Class
@@ -62,8 +46,8 @@ class Edge{
 
         // Methods
         void print(){
-            cout << "     ";
-            cout << "DestinaitonNode : " << destinationNode << "\tWeight: " << weight << endl;
+            std::cout << "     ";
+            std::cout << "DestinaitonNode : " << destinationNode << "\tWeight: " << weight << std::endl;
         }
         //  Set and Get methods
         void set_destinationNode(int d){destinationNode = d;}
@@ -82,18 +66,18 @@ class Node{
     private:
         int name;
         int value;
-        list<Edge> edgeList;
+        std::list<Edge> edgeList;
     public:
         // Contructors
-        Node(int name , list<Edge> edgeList){this->name = name;value = numeric_limits<int>::max();this->edgeList=edgeList;}
-        Node():name(0),value(numeric_limits<int>::max()),edgeList(){} // Do we have to add edgelist or it doesnt matter?
+        Node(int name , std::list<Edge> edgeList){this->name = name;value = std::numeric_limits<int>::max();this->edgeList=edgeList;}
+        Node():name(0),value(std::numeric_limits<int>::max()),edgeList(){} // Do we have to add edgelist or it doesnt matter?
                                                                       //  ~Node(){cout << "Node "<< name << " destroyed"<< endl;}
 
                                                                       //Methods
         void print(){
-            cout << "Node no: " << name << " value: " << value << endl;
+            std::cout << "Node no: " << name << " value: " << value << std::endl;
 
-            list<Edge>::iterator it=edgeList.begin();
+            std::list<Edge>::iterator it=edgeList.begin();
             while(it!=edgeList.end()){
                 it->print();
                 it++;
@@ -107,7 +91,7 @@ class Node{
         // get the weight between this.node and name node
         int get_weight(int name){
             int w=0;
-            list<Edge>::iterator it = edgeList.begin();
+            std::list<Edge>::iterator it = edgeList.begin();
             // While loop to find the edge in the list of edges
             while(it != edgeList.end()){
                 if(it->get_destinationNode() == name){
@@ -117,7 +101,7 @@ class Node{
             }
             return w;
         }
-        list<Edge> get_edgeList(){return edgeList;};
+        std::list<Edge> get_edgeList(){return edgeList;};
         // Adding a edge
         void add_edge(Node y,int w){
             Edge e(y.get_name(),w); //declare a variable of type edge
@@ -126,7 +110,7 @@ class Node{
         // check if an edge exists
         bool check_edge(int n){ 
             bool r=false;
-            list<Edge>::iterator it=edgeList.begin();
+            std::list<Edge>::iterator it=edgeList.begin();
             while(it != edgeList.end()){
                 if(it->get_destinationNode() == n){
                     r = true;
@@ -146,7 +130,7 @@ class Graph{
     private:
         int VG=0;
         int EG=0;
-        vector<Node> nodes;
+        std::vector<Node> nodes;
     public:
         //Contructors
         Graph():VG(0),EG(0){}
@@ -178,13 +162,13 @@ class Graph{
         //~Graph(){cout << "Graph destroyed" << endl;}
 
         // Methods
-        vector<Node> getVecOfNodes(){
+        std::vector<Node> getVecOfNodes(){
             return nodes;
         }
         // Get a specific node from the graph
         Node get_Node(int n){
             Node x;
-            vector<Node>::iterator ve;
+            std::vector<Node>::iterator ve;
             for(ve=nodes.begin(); ve!=nodes.end(); ve++){
                 if(ve->get_name() == n){
                     x = *ve;
@@ -196,7 +180,7 @@ class Graph{
         // Get the weight between 2 nodes
         int get_weight(Node n, Node m){
             int v=0;
-            vector<Node>::iterator ve;
+            std::vector<Node>::iterator ve;
             for(ve=nodes.begin(); ve!=nodes.end(); ve++){
                 if(ve->get_name() == n.get_name()){
                     return ve->get_weight(m.get_name());
@@ -207,7 +191,7 @@ class Graph{
         // Add a node in our graph
         void add_node(Node n){
             bool nExists = false;
-            vector<Node>::iterator ndit;
+            std::vector<Node>::iterator ndit;
             for(ndit=nodes.begin(); ndit!=nodes.end(); ndit++){
                 if(ndit->get_name() == n.get_name()){
                     nExists = true;
@@ -226,7 +210,7 @@ class Graph{
         }
         // Print our graph
         void print_Graph(){
-            vector<Node>::iterator it = nodes.begin();
+            std::vector<Node>::iterator it = nodes.begin();
             while(it != nodes.end()){
                 it->print();
                 it++;
@@ -248,7 +232,7 @@ class Graph{
         // Set and Get path lengths
         int  get_node_value(Node n){
             int v=0;
-            vector<Node>::iterator ve;
+            std::vector<Node>::iterator ve;
             for(ve=nodes.begin(); ve!=nodes.end(); ve++){
                 if(ve->get_name() == n.get_name()){
                     return ve->get_value();
@@ -257,7 +241,7 @@ class Graph{
             return v;
         }
         void set_node_value(Node n,int v){
-            vector<Node>::iterator ve;
+            std::vector<Node>::iterator ve;
             for(ve=nodes.begin(); ve!=nodes.end(); ve++){
                 if(ve->get_name() == n.get_name()){
                     ve->set_value(v);
@@ -265,9 +249,9 @@ class Graph{
             }
         }
         // Get the list of edges that a node in our graph has.
-        list<Edge>  get_edgeList(Node n){
-            list<Edge> eli;
-            vector<Node>::iterator ve;
+        std::list<Edge>  get_edgeList(Node n){
+            std::list<Edge> eli;
+            std::vector<Node>::iterator ve;
             for(ve=nodes.begin(); ve!=nodes.end(); ve++){
                 if(ve->get_name() == n.get_name()){
                     return ve->get_edgeList();
@@ -287,18 +271,18 @@ class Graph{
 // ====================================================================================================================
 class PriorityQueue {
     private:
-        vector<Node> queueOfNodes;
+        std::vector<Node> queueOfNodes;
 
     public:
         // COnstructor
         PriorityQueue();
-        PriorityQueue(vector<Node> queueOfNodes){this->queueOfNodes = queueOfNodes;}
+        PriorityQueue(std::vector<Node> queueOfNodes){this->queueOfNodes = queueOfNodes;}
         //~PriorityQueue(){cout << "PQ destroyed" << endl;}
 
         //Methods
         // Set and Get
         Node get_top(){
-            vector<Node>::iterator it = queueOfNodes.begin() ;
+            std::vector<Node>::iterator it = queueOfNodes.begin() ;
             Node n = queueOfNodes[0];
             queueOfNodes.erase(it);
             return n;
@@ -306,7 +290,7 @@ class PriorityQueue {
         int get_size(){return queueOfNodes.size();}
         int  get_value(Node n){
             int v=0;
-            vector<Node>::iterator it;
+            std::vector<Node>::iterator it;
             for(it = queueOfNodes.begin(); it < queueOfNodes.end(); it++){
                 if( n.get_name() == it->get_name()){
                     return  it->get_value();
@@ -316,7 +300,7 @@ class PriorityQueue {
         }
         // Insert a node to the queue based on its value, the lowest the value the higher in the queue.
         void insert(Node queue_element){
-            vector<Node>::iterator it;
+            std::vector<Node>::iterator it;
             bool inserted = false;
             for(it = queueOfNodes.begin(); it<queueOfNodes.end(); it++){
                 if( queue_element.get_value() < it->get_value()){
@@ -336,7 +320,7 @@ class PriorityQueue {
         }
         // To change a nodes position in the queue i erase it from its current posiion and i insert it again with the new value.
         void chgPrioirity(Node n){
-            vector<Node>::iterator it;
+            std::vector<Node>::iterator it;
             for(it = queueOfNodes.begin(); it < queueOfNodes.end(); it++){
                 if( n.get_name() == it->get_name()){
                     queueOfNodes.erase(it);
@@ -346,7 +330,7 @@ class PriorityQueue {
         }
         // Check if a node is contained in the queue.
         bool contains(int name){
-            vector<Node>::iterator it;
+            std::vector<Node>::iterator it;
             bool contained = false;
             for(it = queueOfNodes.begin(); it < queueOfNodes.end(); it++){
                 if( name == it->get_name()){
@@ -357,7 +341,7 @@ class PriorityQueue {
         }
         // Print the nodes containedin the queue.
         void print(){
-            vector<Node>::iterator i = queueOfNodes.begin();
+            std::vector<Node>::iterator i = queueOfNodes.begin();
             while(i != queueOfNodes.end()){
                 i->print();
                 i++;
@@ -371,7 +355,7 @@ class PriorityQueue {
 // ===========================================================================================================================
 class ShortestPath{
     private:
-        list<Node> List;
+        std::list<Node> List;
         Graph DikjstraGraph;
 
     public:
@@ -379,13 +363,13 @@ class ShortestPath{
         ShortestPath();
         // When an object of this class is declared the constructor runs the dijkstra algorithm
         ShortestPath(Graph g, Node u){
-            vector<Node> queueOfNodes;
+            std::vector<Node> queueOfNodes;
             PriorityQueue PQ(queueOfNodes);   // Init the Priority queue
             Node n,m;                         // Helper nodes
-            list<Edge> nghbs;                 
-            vector<int> sp;
+            std::list<Edge> nghbs;                 
+            std::vector<int> sp;
             int newValue;
-            list<Edge>::iterator li;
+            std::list<Edge>::iterator li;
 
             // Set node u ad init node
             g.set_node_value(u,0);
@@ -423,11 +407,11 @@ class ShortestPath{
             float avg=0.0;
             float count=0.0;
             int dist=0;
-            vector<Node> nodes = DikjstraGraph.getVecOfNodes();
-            vector<Node>::iterator it;
+            std::vector<Node> nodes = DikjstraGraph.getVecOfNodes();
+            std::vector<Node>::iterator it;
             for(it = nodes.begin(); it < nodes.end(); it++){
                 dist = it->get_value();
-                if(dist !=numeric_limits<int>::max() && dist >= 0){
+                if(dist !=std::numeric_limits<int>::max() && dist >= 0){
                     avg += dist;
                 }
             }
@@ -450,13 +434,13 @@ int main(){
     //g.print_Graph();
     x.set_name(0); // Start node for the Dijkstra algorithm is 0
     ShortestPath sh(g,x);
-    cout << "Average path length with density = 20% : " << sh.calc_avg_path_length() << endl;
+    std::cout << "Average path length with density = 20% : " << sh.calc_avg_path_length() << std::endl;
 
     Graph g2(40,10);
     //g2.print_Graph();
     x.set_name(0);
     ShortestPath sh2(g2,x);
-    cout << "Average path length with density = 40% : " << sh2.calc_avg_path_length() << endl;
+    std::cout << "Average path length with density = 40% : " << sh2.calc_avg_path_length() << std::endl;
 
     return 0;
 }
