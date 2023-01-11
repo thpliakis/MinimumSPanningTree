@@ -419,6 +419,10 @@ class ShortestPath{
         }
 };
 
+void getw(std::string& t, std::ifstream& in){
+    in >> t;
+}
+
 //====================
 // Main function
 // ==================
