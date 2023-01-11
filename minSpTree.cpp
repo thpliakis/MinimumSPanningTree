@@ -353,16 +353,16 @@ class PriorityQueue {
 // Dijkstra Algorithm Class
 // An Object of this class contains a graph, in which each node has its path length (value) calculated in the constructor.
 // ===========================================================================================================================
-class ShortestPath{
+class MinSpanTree{
     private:
         std::list<Node> List;
         Graph DikjstraGraph;
 
     public:
         // Constructors
-        ShortestPath();
+        MinSpanTree();
         // When an object of this class is declared the constructor runs the dijkstra algorithm
-        ShortestPath(Graph g, Node u){
+        MinSpanTree(Graph g, Node u){
             std::vector<Node> queueOfNodes;
             PriorityQueue PQ(queueOfNodes);   // Init the Priority queue
             Node n,m;                         // Helper nodes
@@ -428,6 +428,11 @@ void getw(std::string& t, std::ifstream& in){
 // ==================
 int main(){
 
+    // Read file
+    std::ifstream graph_file("graph.txt");
+    std::istream_iterator<std::string> start(graph_file), end;
+    std::vector<std::string> graphs(start,end);
+
     // Initialize variables
     Graph g(20,10);
     Node x;
@@ -437,14 +442,7 @@ int main(){
 
     //g.print_Graph();
     x.set_name(0); // Start node for the Dijkstra algorithm is 0
-    ShortestPath sh(g,x);
-    std::cout << "Average path length with density = 20% : " << sh.calc_avg_path_length() << std::endl;
-
-    Graph g2(40,10);
-    //g2.print_Graph();
-    x.set_name(0);
-    ShortestPath sh2(g2,x);
-    std::cout << "Average path length with density = 40% : " << sh2.calc_avg_path_length() << std::endl;
-
+    MinSpanTree mst(g,x);
+    std::cout << "Average path length with density = 20% : " << mst.calc_avg_path_length() << std::endl;
     return 0;
 }
