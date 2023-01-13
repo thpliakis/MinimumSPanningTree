@@ -6,6 +6,7 @@
 #include <fstream>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <unistd.h>
 #include <limits>
 #include <random>
@@ -71,9 +72,9 @@ class Node{
         // Contructors
         Node(int name , std::list<Edge> edgeList){this->name = name;value = std::numeric_limits<int>::max();this->edgeList=edgeList;}
         Node():name(0),value(std::numeric_limits<int>::max()),edgeList(){} // Do we have to add edgelist or it doesnt matter?
-                                                                      //  ~Node(){cout << "Node "<< name << " destroyed"<< endl;}
+                                                                           //  ~Node(){cout << "Node "<< name << " destroyed"<< endl;}
 
-                                                                      //Methods
+                                                                           //Methods
         void print(){
             std::cout << "Node no: " << name << " value: " << value << std::endl;
 
@@ -135,28 +136,26 @@ class Graph{
         //Contructors
         Graph():VG(0),EG(0){}
         // The random graph procedure (in the constructor here) have edge density and distance range as parameters.
-        Graph(int density, int range){
-            Node n,x,y;
-
-            int value;
-
-            // Create a graph of size NUMOFNODES
-            for(int i=0; i<NUMOFNODES; i++){
-                add_Node(i);
-            }
+        Graph(std::string file_name){
             
-            // Initialize the edges with density 20%
-            //maxNumOfEdges=1225 loops with NUMOFNODES=50
-            for(int i=0; i<NUMOFNODES; i++){
-                for(int j=i+1; j<NUMOFNODES; j++){ 
-                    value=distribution(engine);
-                    // value must be less than 20 to have 20% density
-                    if(value <= density){ 
-                        x.set_name(i);
-                        y.set_name(j);
-                        add(x,y,range);       // insert edge between nodes x,y
-                    }
-                }
+            // Read file
+            std::ifstream graph_file(file_name);
+            int num;
+            int node1, node2 , weight;
+
+            std::string line;
+            std::getline(graph_file, line);
+            std::istringstream iss(line);
+            iss >> num;
+            std::cout << "number of nodes: " << num << std::endl;
+            while (std::getline(graph_file, line))
+            {
+                std::istringstream iss(line);
+                if (!(iss >> node1 >> node2 >> weight)) { break; } // error
+
+                add_Node(node1);
+                add_Node(node2);
+                add(get_Node(node1),get_Node(node2),weight);
             }
         }
         //~Graph(){cout << "Graph destroyed" << endl;}
@@ -217,11 +216,10 @@ class Graph{
             }
         }
         // Add an edge between 2 nodes
-        bool add(Node x, Node y, int range){
+        bool add(Node x, Node y, int w){
             if(nodes[x.get_name()].check_edge(y.get_name()) || x.get_name()==y.get_name()){
                 return 1;
             }else{
-                int w = rand()%range+1;
                 nodes[x.get_name()].add_edge(y,w);
                 nodes[y.get_name()].add_edge(x,w);
                 EG++;
@@ -419,24 +417,17 @@ class MinSpanTree{
         }
 };
 
-void getw(std::string& t, std::ifstream& in){
-    in >> t;
-}
-
 //====================
 // Main function
 // ==================
 int main(){
 
-    // Read file
-    std::ifstream graph_file("graph.txt");
-    std::istream_iterator<std::string> start(graph_file), end;
-    std::vector<std::string> graphs(start,end);
 
     // Initialize variables
-    Graph g(20,10);
-    Node x;
+    Graph g("graph.txt");
 
+    g.print_Graph();
+    /*
     // random engine
     srand(time(0));
 
@@ -444,5 +435,6 @@ int main(){
     x.set_name(0); // Start node for the Dijkstra algorithm is 0
     MinSpanTree mst(g,x);
     std::cout << "Average path length with density = 20% : " << mst.calc_avg_path_length() << std::endl;
+    */
     return 0;
 }
