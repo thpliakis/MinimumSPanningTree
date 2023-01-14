@@ -1,6 +1,6 @@
 /*   Create a random undirected graph and find the minimum spanning tree.
  *   Thomas Pliakis
- *   January 11, 2023
+ *   January 14, 2023
  */
 
 #include <fstream>
@@ -16,18 +16,10 @@
 #include <list>
 #include <ctime>
 
-// ============================================================================
-// Definitions
-// ============================================================================
-const int N=10;
-const int NUMOFNODES =50;
-const int maxNumOfEdges = (NUMOFNODES *(NUMOFNODES -1))/2;
-
-
 //=============================================================================
 // Edge Class
 // The objects of this class are the edges of our graph 
-// that keep the destination of the edge and its weight.
+// that keep theabegining, the destination of the edge and its weight.
 // ============================================================================
 class Edge{
     private:
@@ -65,10 +57,10 @@ class Node{
     public:
         // Contructors
         Node(int name , std::list<Edge> edgeList){this->name = name;this->edgeList=edgeList;}
-        Node():name(0),edgeList(){} // Do we have to add edgelist or it doesnt matter?
-                                    //  ~Node(){cout << "Node "<< name << " destroyed"<< endl;}
+        Node():name(0),edgeList(){} 
+        //  ~Node(){cout << "Node "<< name << " destroyed"<< endl;}
 
-                                    //Methods
+        //Methods
         void print(){
             std::cout << "Node no: " << name <<  std::endl;
 
@@ -133,7 +125,9 @@ class Graph{
 
             // Read file
             std::ifstream graph_file(file_name);
+            // num if the first line, the number of nodes
             int num;
+            // Here each line is temporary saved before going on the graph.
             int node1, node2 , weight;
 
             std::string line;
@@ -141,6 +135,7 @@ class Graph{
             std::istringstream iss(line);
             iss >> num;
             std::cout << "number of nodes: " << num << std::endl;
+            // Read all lines and initiate the graph.
             while (std::getline(graph_file, line))
             {
                 std::istringstream iss(line);
@@ -180,6 +175,7 @@ class Graph{
             }
             return v;
         }
+        // Check if a node already exists in the graph.
         bool node_exists(int n){
             std::vector<Node>::iterator ndit;
             for(ndit=nodes.begin(); ndit!=nodes.end(); ndit++){
@@ -253,15 +249,16 @@ class Graph{
 
 // ====================================================================================================================
 // Priority Class
-// The class of our Priority Queue which contains a  vector of nodes.
-// The node at the top of the queue always has the minimum value (path length) and so its the next to picked.
+// The class of our Priority Queue which contains a list of edges.
+// The edge at the top of the queue always has the minimum weight and so its the next to picked.
+// If 2 edges have the same weight then higher is the one that was entered first.
 // ====================================================================================================================
 class PriorityQueue {
     private:
         std::list<Edge> queue;
 
     public:
-        // COnstructor
+        // Constructor
         PriorityQueue();
         PriorityQueue(std::list<Edge> queue){this->queue = queue;}
         //~PriorityQueue(){cout << "PQ destroyed" << endl;}
@@ -275,7 +272,7 @@ class PriorityQueue {
             return n;
         }
         int get_size(){return queue.size();}
-        // Insert a node to the queue based on its value, the lowest the value the higher in the queue.
+        // Insert an edge to the queue based on its weight, the lowest the weight the higher in the queue.
         void insert(Edge queue_element){
             std::list<Edge>::iterator it = queue.begin();
             bool inserted = false;
@@ -313,7 +310,7 @@ class PriorityQueue {
 
 // ===========================================================================================================================
 // Prim's Algorithm Class
-// An Object of this class contains a graph.
+// An Object of this class contains the mininmun spanning tree of a graph.
 // ===========================================================================================================================
 class MinSpanTree{
     private:
@@ -338,9 +335,11 @@ class MinSpanTree{
             PriorityQueue q(queue);
 
             while(mstGraph.get_VG() != g.get_VG()){
-                // Insert node u as init node
+                // Insert node u as init node in mst graph.
                 mstGraph.add_Node(u.get_name());
+                // Fetch the neighboring nodes.
                 nghbs = g.get_edgeList(u);
+                // Check if there aren't any neighbors.
                 if(nghbs.empty()){
                     std::cout << "Node : " << u.get_name() << " has no neigbors" << std::endl;
                     break;
@@ -355,21 +354,27 @@ class MinSpanTree{
                     it++;
                 }
                 
+                // Get the top edge to put it in mst grap.
                 t = q.get_top();
+                // Check if edge already exists in the graph
                 while(mstGraph.node_exists(t.get_destinationNode()))
                     t = q.get_top();
+                // Add node and edge in mst graph
                 mstGraph.add_Node(t.get_destinationNode());
                 n.set_name(t.get_destinationNode());
                 u.set_name(t.get_beginNode());
                 mstGraph.add(u,n,t.get_weight());
+                // When an new edge is  inputed in the graph it's weight is added to the cost.
                 cost += t.get_weight();
 
+                // In the next iteration add in the queue the edges if the new added node.
                 u.set_name(t.get_destinationNode());
             }
             
             // Destructor
             //~ShortestPath();//{cout << "ShortestPath destroyed" << endl;}
         }
+        // Print mst graph
         void print(){
             mstGraph.print_Graph();
             std::cout << "Cost = " << cost << std::endl;
